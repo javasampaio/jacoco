@@ -1,0 +1,39 @@
+apply plugin: 'jacoco'
+
+android.testOptions {
+    unitTests {
+        includeAndroidResources = true
+        animationsDisabled true
+    }
+    unitTests.all {
+        ignoreFailures false
+        jacoco {
+            includeNoLocationClasses = true
+        }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+
+task jacocoTestReport(type: JacocoReport) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/androidDebug", excludes: fileFilter)
+    def kClassTree = fileTree(dir: "${buildDir}/tmp/kotlin-classes/androidDebug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files([mainSrc]))
+    classDirectories.setFrom(files([debugTree, kClassTree]))
+    executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code_coverage/androidDebugAndroidTest/connected/*coverage.ec"
+    ]))
+}
